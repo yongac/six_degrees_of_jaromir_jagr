@@ -28,7 +28,7 @@ def main():
     if num_players < EXPECTED_NUM_PLAYERS:
         # Only bother constructing the database if it appears incomplete.
         # We use "completeness" proxy of checking it has "enough" players.
-        database.add_to_database(basic_data, db_file)
+        database.add_to_database(db_file, basic_data)
 
     # Get and Validate User Input
     player_id = False
