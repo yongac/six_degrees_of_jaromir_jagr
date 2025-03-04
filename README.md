@@ -34,7 +34,24 @@ In this initial iteration, the project is organized as follows:
 
 ## Design
 
-Coming soon.
+1. We set up a SQLite3 database and populate it with player, team, and other data.
+    * The amount of data entered will greatly increase with each iteration of the project.
+    * In Stage 0, it is populated manually (from a text file) with limited data points.
+    * In Stage 1, several CSV files are manually prepared and then automatically fed to the database.
+    * In Stage 2, the CSV generation is done by a script.
+
+2. After building a table of teammates, we check if tables for BFS logic have been constructed. They are constructed only once (or periodically) to amortize the cost of BFS across many calls to the function.
+
+3. If the BFS-relevant tables haven't been built, we construct them:
+    - We build a teammates graph in memory, represented as an adjacency list (dict of lists of teammates), with nodes indexed by player ids and edges inserted acc. to a teammates table.
+    - We do BFS rooted at Jagr's node, recording BFS parent-children relationships in a dict
+    - The dict mapping a player to their BFS parent is used to build a corresponding table in the DB
+
+4. User input is received, validated, and the player's id is extracted and passed to the next part.
+
+5. We trace a path from the input player's id to Jagr's id by traversing child-to-parent in the BFS parent table, storing all results.
+
+6. We use queries to record the player names and common teams along this path, and print the result.
 
 
 ## Issues and Future Improvements
