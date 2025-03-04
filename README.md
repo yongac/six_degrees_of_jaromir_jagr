@@ -6,13 +6,13 @@ This repository contains a CLI program that finds the shortest sequence of teamm
 
 **Note: this project is <font color='red'>under construction</font>!** 
 
-(2025/03/03) In this initial iteration, the data used is extremely (cartoonishly) limited -- consisting of just a few players and a tiny subset of their career information. The aim of this preliminary version is to demonstrate that the logic of the program is internally consistent and that the various parts of the code work together as intended. 
+(2025/03/04) In this (second) iteration, the data used is very limited -- consisting of just a few rosters and totalling around 200 players (and considering only a small part of their careers). In addition to showing that the main functionality works as intended, the aim of this version is to show that we can build our database from CSV files.
 
 Other issues and future improvements are discussed at the bottom of this file, just before the Acknowledgments section. 
 
 ## Usage:
 
-1. Ensure you have Python 3 installed (tested with 3.12.8). The only packages used are in the standard library.
+1. Ensure you have Python 3 installed (tested with both 3.8.20 and 3.12.8). The only packages used so far are in the standard library.
 2. Clone this repository.
 3. Run `python3 main.py`, and follow the prompts for further input.
 
@@ -24,21 +24,28 @@ In this initial iteration, the project is organized as follows:
 |-- README.md
 |-- main.py             # the file to actually run.
 |-- database.py         # code to interact with the database
-|-- graph_operations.py # code for graph algorithms. only interaction with database is reading.
+|-- graph_operations.py # helpers for BFS functionality
 |-- helpers.py          # misc helper functions to de-clutter main.py
 |-- data.db             # sqlite DB of player, team, and other required data
-|-- add_toy_data.txt    # instructions for manually adding entries to the database
+|-- manual_csv_data/    # folder containing copy-pasted CSV data for a handful of rosters.
+|   |-- mtl2006.csv
+|   |-- mtl2016.csv
+|   |-- ott2015.csv
+|   |-- pit1991.csv
+|   |-- pit1999.csv
+|   |-- veg2020.csv
+|-- semiauto.db         # a sqlite3 database constructed by database.py using the CSVs above
 ```
 
-*Note:* the file `add_toy_data.txt` will be used to populate `data.db` only in this early, incomplete form of the project. It will be replaced in future iterations, described further below.
+*Note:* the database file `semiauto.db` is only constructed using the CSV files of `manual_csv_data/` in this early iteration of the project. It will be replaced in future iterations, described further below.
 
 ## Design
 
 1. We set up a SQLite3 database and populate it with player, team, and other data.
     * The amount of data entered will greatly increase with each iteration of the project.
-    * In Stage 0, it is populated manually (from a text file) with limited data points.
-    * In Stage 1, several CSV files are manually prepared and then automatically fed to the database.
-    * In Stage 2, the CSV generation is done by a script.
+    * (Previouly) In Stage 0, it is populated manually (from a text file) with limited data points.
+    * (Currently) In Stage 1, several CSV files are manually prepared and then automatically fed to the database.
+    * (Forthcoming) In Stage 2, the CSV generation is done by a script.
 
 2. After building a table of teammates, we check if tables for BFS logic have been constructed. They are constructed only once (or periodically) to amortize the cost of BFS across many calls to the function.
 
@@ -58,11 +65,10 @@ In this initial iteration, the project is organized as follows:
 
 #### Populating the database
 
-In the earliest iteration of this project, the database is populated manually with an extremely limited number of data points, and these commands are read from a text file. In subsequent versions, we will improve this as follows:
-1. Manually produce CSV files of rosters for a given team and year, store many of these in a separate `data/` folder, and write python script to ingest these to populate the database.
-    * This is done, to be uploaded, but results in a still incomplete database (unless you want to manually produce 1000s of CSVs!)
+In this iteration of the project, the database is populated manually by producing CSV files of rosters for a given team and year (copied and pasted from Hockey Reference), storing many of these in a separate `manual_csv_data/` folder, and writing python script to ingest these to populate the database.
+   * Unless you want to manually produce 1000s of CSVs, this will still yield an incomplete database.
 
-2. Write a .py file that scrapes the relevant table data and directly adds each table to the database.
+In the next iteration of the project, we will write a .py file that scrapes the relevant table data and directly adds each table to the database.
 
 #### Validating player data
 

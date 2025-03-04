@@ -16,19 +16,21 @@ def main():
     ### Step 0: Set-up
 
     # Declare which database file to construct
-    db_file = "toy.db"
+    db_file = "semiauto.db"
 
-    # Declare which .txt file will be used to construct it:
-    basic_data = "add_toy_data.txt"
+    # Declare which data source to use to build our db (either .txt or folder of CSVs)
+    basic_data = "manual_csv_data/"  
 
     # Ensure the tables have been initialized
-    database.set_up_db(db_file)
-    EXPECTED_NUM_PLAYERS = 5
+    database.set_up_db(db_file)  
+    EXPECTED_NUM_PLAYERS = 200
     num_players = len(database.get_all_players(db_file))
     if num_players < EXPECTED_NUM_PLAYERS:
         # Only bother constructing the database if it appears incomplete.
         # We use "completeness" proxy of checking it has "enough" players.
-        database.add_to_database(db_file, basic_data)
+        database.add_to_database(db_file, basic_data)  
+    
+    num_players = len(database.get_all_players(db_file)) # reset the number of players after adding
 
     # Get and Validate User Input
     player_id = False
@@ -45,11 +47,8 @@ def main():
         bfs_parent_dict = graph_operations.BFS(db_file, root='jagrja01')
         database.make_BFS_parent_table(bfs_parent_dict, db_file)
 
-
-
     ## Step 2:  Call "traverse_bfs_path()" to get distance to Jagr and sequence of teammates + common teams
     distance, result = graph_operations.traverse_bfs_path( player_id, db_file, root='jagrja01')
-
 
     ## Step 3: Print the result:
     print(f"\n{first} {last}'s distance to Jagr = {distance}:")

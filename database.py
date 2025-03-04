@@ -1,10 +1,12 @@
 # Python code for building and updating the database.
-import sqlite3
-
+import sqlite3, os
+import unicodedata # for removing diacritics from player names.
 ########################################################################
 # Function signatures for functions herein:
 #
 # add_to_database(data_file, db_filename)
+# add_to_database_from_csv_folder(db_filename, folder)    
+# add_to_database_from_txt(db_filename, data_file)         
 # check_bfs_parent_ready(db_filename):
 # common_team(player1_id, player2_id, db_filename)
 # get_all_players(db_filename)
@@ -12,25 +14,104 @@ import sqlite3
 # get_player_name_from_id(player_id, db_filename)
 # make_BFS_parent_table(bfs_parent_dict, db_filename)
 # make_teammates_table(db_filename)
+# remove_diacritics(name)                                  
 # set_up_db(db_filename)
 #
 ########################################################################
 
-
-
-def add_to_database(db_filename, data_source_file, csv=False, txt=True):
+def add_to_database(db_filename, csv_folder, txt_file=None):
     """
-    Takes data from "data_source_file" and fills the "players", "teams", and "team_membership" tables
-    of the database within db_filename.
-
-    TEMPORARILY: just reads from a .txt file with all INSERT queries spelled out.
-    TODO: make this compatible with a script that generates CSVs from hockey-reference...
+    Fills the "players", "teams", and "team_membership" tables
+    of the database within db_filename, either using a number of CSV files OR a single txt file.
 
     Assumes that set_up_db(db_filename) has previously been called.
     """
     set_up_db(db_filename)
 
-    with open(data_source_file) as file_pointer:
+    # If we're using a .txt file, call one procedure:
+    if txt_file:
+        add_to_database_from_txt(db_filename, txt_file)    
+        return
+
+    # Otherwise, we're doing it with a folder full of CSVs:
+    add_to_database_from_csv_folder(db_filename, csv_folder)  
+    return
+
+def add_to_database_from_csv_folder(db_filename, folder):
+    """
+    Fills the tables in db_filename using CSV files contained in "folder".
+
+    Assumes [database.] set_up_db(db_filename) has previously been called.
+    """
+
+    # Connect to the database and make a cursor:
+    conn = sqlite3.connect(db_filename)
+    cursor = conn.cursor()
+
+    # Make a look-up table to tell team name from team_id:
+    # TODO: move this out to a more appropriate place...
+    team_name_given_id = {
+        'OTT':'Ottawa Senators', 'MTL':'Montreal Canadiens',
+        'PIT':'Pittsburgh Penguins', 'VEG':'Las Vegas Golden Knights'
+    }
+
+    # Prepare template for insertion queries:
+    team_query = "INSERT OR REPLACE INTO teams (id, name) VALUES (?,?)"
+    player_query = "INSERT OR REPLACE INTO players (id, first_name, last_name, birth_year) VALUES (?,?,?,?)"
+    team_membership_query = "INSERT OR REPLACE INTO team_membership (player_id, team_id, season) VALUES (?,?,?)"
+
+    # For each CSV in the folder: (1) extract team + season data from title, (2) extract player data from rows
+    list_of_CSVs = os.listdir(folder)
+    for file_name in list_of_CSVs:
+        team_id = file_name[0:3].upper()
+        season = file_name[3:7] # gives year that season ended, e.g. 2021-2022 --> season = 2022
+        team_name = team_name_given_id[ team_id ]
+
+        # Insert this team into "teams" table:
+        cursor.execute(team_query, (team_id, team_name) )
+
+        with open(folder + '/' + file_name) as file_ptr:
+            # Read the contents of the CSV into a variable:
+            all_rows = file_ptr.readlines() # list of strs
+
+        num_rows = len(all_rows)
+        player_fill_data = [] # list of tuples for cursor.executemany( player_query, player_fill_data )
+        team_membership_fill_data = [] # similar to above, with team_membership_query
+
+        # Read rows, skipping 2 rows of header + 1 row of footer
+        for row_idx in range(2, num_rows - 1):
+            player_data = all_rows[row_idx].split(sep=',')
+            name = player_data[1].split() # 2nd col = "<First> <Last>", but potentially with diacritics
+            first, last = name[0], name[1]
+
+            # Remove any diacritics, if they exist:
+            first = remove_diacritics(first)
+            last = remove_diacritics(last)
+
+            player_id = player_data[-1].strip() # remove trailing \n
+
+            player_fill_data.append( (player_id, first, last, None) )
+            team_membership_fill_data.append( (player_id, team_id, season))
+
+        cursor.executemany(player_query, player_fill_data)
+        cursor.executemany(team_membership_query, team_membership_fill_data)
+
+    conn.commit()
+    conn.close()
+    return 
+
+def add_to_database_from_txt(db_filename, data_file):
+    """
+    Takes data from "data_file" (.txt file) and fills the "players", "teams", and "team_membership" tables
+    of the database within db_filename.
+
+    Just reads from a .txt file with all INSERT queries spelled out.
+
+    Assumes that set_up_db(db_filename) has previously been called.
+    """
+    set_up_db(db_filename)
+
+    with open(data_file) as file_pointer:
         fill_instructions = file_pointer.read()
         file_pointer.close()
 
@@ -197,6 +278,17 @@ def make_teammates_table(db_filename):
     conn.commit()
     conn.close()
 
+
+def remove_diacritics(name):
+    """
+    Removes accents and the like from a given name.
+
+    Implementation obtained with ChatGPT's help.
+    """
+    # NFKD option changes internal representation of accented char to a sum of unaccented + accent symbol.
+    normalized_version = unicodedata.normalize("NFKD", name)
+    simplified = ''.join(c for c in normalized_version if not unicodedata.combining(c))
+    return simplified
 
 
 def set_up_db(db_filename):
