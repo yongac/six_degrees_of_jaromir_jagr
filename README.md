@@ -6,46 +6,51 @@ This repository contains a CLI program that finds the shortest sequence of teamm
 
 **Note: this project is <font color='red'>under construction</font>!** 
 
-(2025/03/04) In this (second) iteration, the data used is very limited -- consisting of just a few rosters and totalling around 200 players (and considering only a small part of their careers). In addition to showing that the main functionality works as intended, the aim of this version is to show that we can build our database from CSV files.
+(2025/03/05) In this (third) iteration, the data used is limited -- to respect the request rate limits imposed by Hockey-Reference, we collect data for about 20 rosters per minute, meaning extensive NHL roster data would take a few hours to collect -- but you can change the parameters of the scraping process if you want more extensive data. 
+
+This iteration shows that the main logic of the program works, from scraping data to building a database file and then to processing that data and computing shortest paths.
 
 Other issues and future improvements are discussed at the bottom of this file, just before the Acknowledgments section. 
 
 ## Usage:
 
-1. Ensure you have Python 3 installed (tested with both 3.8.20 and 3.12.8). The only packages used so far are in the standard library.
+1. Ensure you have Python 3 installed, and verify that you have the required packages (see `environment.yml` or `requirements.txt`) installed in your environment.
 2. Clone this repository.
 3. Run `python3 main.py`, and follow the prompts for further input.
+    * If you have not run the program before, it will take approximately 1-2 minutes to scrape the data for 20 rosters (e.g. one NHL team across 20 years) from the internet. This slow speed is due to intentional rate limiting (see `scraper.py`).
 
 ## Organization
 
-In this initial iteration, the project is organized as follows:
+In this iteration, the project is organized as follows:
 
 ```
 |-- README.md
-|-- main.py             # the file to actually run.
-|-- database.py         # code to interact with the database
-|-- graph_operations.py # helpers for BFS functionality
-|-- helpers.py          # misc helper functions to de-clutter main.py
-|-- data.db             # sqlite DB of player, team, and other required data
-|-- manual_csv_data/    # folder containing copy-pasted CSV data for a handful of rosters.
-|   |-- mtl2006.csv
-|   |-- mtl2016.csv
-|   |-- ott2015.csv
-|   |-- pit1991.csv
-|   |-- pit1999.csv
-|   |-- veg2020.csv
-|-- semiauto.db         # a sqlite3 database constructed by database.py using the CSVs above
+|-- environment.yml
+|-- requirements.txt
+|-- main.py               # the file to actually run.
+|-- database.py           # code to interact with the database
+|-- scraper.py            # scraping roster data from Hockey Reference
+|-- graph_operations.py   # helpers for BFS functionality
+|-- helpers.py            # misc helper functions to de-clutter main.py
+|-- auto.db               # sqlite DB of player, team, and other required data
+|-- team_info/            # CSVs containing meta data for scraping
+|   |-- team_names.csv    # for converting team_ids to full team names
+|   |-- team_seasons.csv  # tells which season-range to scrape data for
+|   |-- tiny_names.csv    # smaller version of team_names.csv, for testing 
+|   |-- tiny_seasons.csv  
+|-- auto.db             # a sqlite3 database constructed by database.py using the CSVs above
 ```
 
-*Note:* the database file `semiauto.db` is only constructed using the CSV files of `manual_csv_data/` in this early iteration of the project. It will be replaced in future iterations, described further below.
+*Note:* the database file `auto.db` is not included in this online repo, but is constructed when running `main.py` for the first time. To add more/less data to this database, change the parameters/meta data in `team_names.csv` and/or `team_seasons.csv`. To avoid repeatedly scraping, it may be desirable to run this one time for the entire history of NHL roster data and save those in a CSV file. 
 
 ## Design
 
 1. We set up a SQLite3 database and populate it with player, team, and other data.
     * The amount of data entered will greatly increase with each iteration of the project.
     * (Previouly) In Stage 0, it is populated manually (from a text file) with limited data points.
-    * (Currently) In Stage 1, several CSV files are manually prepared and then automatically fed to the database.
-    * (Forthcoming) In Stage 2, the CSV generation is done by a script.
+    * (Previously) In Stage 1, several CSV files are manually prepared and then automatically fed to the database.
+    * (Currently) In Stage 2, we scrape the table data and insert it directly into the database file.
+    * (Forthcoming) In Stage 3, we will revisit this design.
 
 2. After building a table of teammates, we check if tables for BFS logic have been constructed. They are constructed only once (or periodically) to amortize the cost of BFS across many calls to the function.
 
@@ -65,10 +70,9 @@ In this initial iteration, the project is organized as follows:
 
 #### Populating the database
 
-In this iteration of the project, the database is populated manually by producing CSV files of rosters for a given team and year (copied and pasted from Hockey Reference), storing many of these in a separate `manual_csv_data/` folder, and writing python script to ingest these to populate the database.
-   * Unless you want to manually produce 1000s of CSVs, this will still yield an incomplete database.
-
-In the next iteration of the project, we will write a .py file that scrapes the relevant table data and directly adds each table to the database.
+In this iteration of the project, the database is populated by scraping Hockey-Reference for rosters of given teams and years (as specified in the CSV files within `team_info/`.
+   * Although this process can be automatically done for all roster data dating to the beginning of the NHL, it currently would take multiple hours, owing to the rate limits placed on us by Hockey-Reference.
+   * It would be nice to amortize this cost by doing it once and posting that data here, but I am postponing this for now, as it isn't an especially interesting problem.  
 
 #### Validating player data
 

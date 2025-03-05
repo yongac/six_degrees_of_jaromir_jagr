@@ -16,19 +16,20 @@ def main():
     ### Step 0: Set-up
 
     # Declare which database file to construct
-    db_file = "semiauto.db"
+    db_file = "auto.db"
 
-    # Declare which data source to use to build our db (either .txt or folder of CSVs)
-    basic_data = "manual_csv_data/"  
+    # Specify CSV file for meta data used to make database (teams, years)
+    team_names_csv = "team_info/tiny_names.csv"  
+    team_seasons_csv = "team_info/tiny_seasons.csv" 
 
-    # Ensure the tables have been initialized
+    # Ensure the tables have been initialized: 
     database.set_up_db(db_file)  
     EXPECTED_NUM_PLAYERS = 200
     num_players = len(database.get_all_players(db_file))
     if num_players < EXPECTED_NUM_PLAYERS:
         # Only bother constructing the database if it appears incomplete.
         # We use "completeness" proxy of checking it has "enough" players.
-        database.add_to_database(db_file, basic_data)  
+        database.add_to_database(db_file, team_names_csv, team_seasons_csv)
     
     num_players = len(database.get_all_players(db_file)) # reset the number of players after adding
 
