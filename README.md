@@ -4,9 +4,9 @@ This repository contains a CLI program that finds the shortest sequence of teamm
 
 **Purpose:** This project is meant to be a learning exercise, with the aim of practicing some project-specific skills (scraping data from the internet, using SQL databases) as well as more general software development skills (organizing a public-facing project and version controlling it with Git). 
 
-**Note:** This project is under construction.
+<br>
 
-This iteration shows that the main logic of the program works, from scraping data to building a database file and then to processing that data and computing shortest paths. 
+**Note:** This iteration shows that the main logic of the program works, from scraping data to building a database file and then to processing that data and computing shortest paths. 
 
 Other issues and future improvements are discussed at the bottom of this file, just before the Acknowledgments section. 
 
@@ -14,10 +14,12 @@ Other issues and future improvements are discussed at the bottom of this file, j
 
 1. Fork and clone this repository.
 2. Set up your Python 3 environment to meet the specifications in either `environment.yml` or `requirements.txt` 
-3. (Scrape the data) If you have not run the program before, you need to scrape NHL roster data and build the database.    
-    * This is done by (i) configuring parameters in `team_info/team_names.csv` and `team_info/team_seasons.csv` (or your choice of other CSV files), which control which teams and which year ranges are scraped, (ii) ensuring the python variables `team_names_csv` and `team_seasons_csv` within `main.py` are set to your choice files in (i), and finally (iii) running `python3 main.py` (or equivalent) at the command line.
-    * Depending on the number of teams/seasons you specify in part (i) above, the scraping process will take minutes or hours, since Hockey-Reference rate limits bot traffic to 20 requests per minute. So, expect a single roster (team in a given year) to take approximately 3 seconds. 
+3. (Optionally, scrape the data) In this iteration, I'm providing a (*limited*) database file that can be used right away, without the need for the scraping step (which is slow, due to rate limiting described below).
 4. Run `python3 main.py`, and follow the prompts for further input.
+
+<br> 
+
+*Note:* The database included currently only has player/team data from the 1980-1981 NHL season onward to 2025/03/06. If you want more/less data to this database, change the parameters/meta data in `team_names.csv` and/or `team_seasons.csv`. However, the scraping process will take minutes or hours, since Hockey-Reference rate limits bot traffic to 20 requests per minute. So, expect a single roster (team in a given year) to take approximately 3 seconds. 
 
 
 ## Organization
@@ -31,27 +33,18 @@ In this iteration, the project is organized as follows:
 |-- main.py               # the file to actually run.
 |-- database.py           # code to interact with the database
 |-- scraper.py            # scraping roster data from Hockey Reference
-|-- graph_operations.py   # helpers for BFS functionality
-|-- helpers.py            # misc helper functions to de-clutter main.py
-|-- auto.db               # sqlite DB of player, team, and other required data
+|-- graph_operations.py   # BFS functionality
+|-- helpers.py            
 |-- team_info/            # CSVs containing meta data for scraping
 |   |-- team_names.csv    # for converting team_ids to full team names
 |   |-- team_seasons.csv  # tells which season-range to scrape data for
-|   |-- tiny_names.csv    # smaller version of team_names.csv, for testing 
-|   |-- tiny_seasons.csv  
-|-- auto.db               # a sqlite3 database constructed by database.py using the CSVs above
+|   |-- ...               # smaller (test) versions of the 2 CSVs above. 
+|-- 1980_to_2025.db       # sqlite3 database built using database.py + CSVs above
 ```
-
-*Note:* At this time, the database file `auto.db` is not included in this online repo, but is constructed when running `main.py` for the first time. To add more/less data to this database, change the parameters/meta data in `team_names.csv` and/or `team_seasons.csv`. To avoid repeatedly scraping, it may be desirable to run this one time for the entire history of NHL roster data and save those in a CSV file. 
 
 ## Design
 
-1. We set up a SQLite3 database and populate it with player, team, and other data.
-    * The amount of data entered will greatly increase with each iteration of the project.
-    * (Previouly) In Stage 0, it is populated manually (from a text file) with limited data points.
-    * (Previously) In Stage 1, several CSV files are manually prepared and then automatically fed to the database.
-    * (Currently) In Stage 2, we scrape the table data and insert it directly into the database file.
-    * (Forthcoming) In Stage 3, we will revisit this design.
+1. We set up a SQLite3 database and populate it with player, team, and other data. In this iteration, this is done by scraping many pages of roster data from Hockey-Reference.
 
 2. After building a table of teammates, we check if tables for breadth-first search (BFS) logic have been constructed. They are constructed only once (or periodically) to amortize the cost of BFS across many calls to the function.
 
@@ -72,8 +65,6 @@ In this iteration, the project is organized as follows:
 #### Populating the database
 
 In this iteration of the project, the database is populated by scraping Hockey-Reference for rosters of given teams and years (as specified in the CSV files within `team_info/`).
-   * Although this process can be automatically done for all roster data dating to the beginning of the NHL, it currently would take multiple hours, owing to the rate limits placed on us by Hockey-Reference.
-   * It would be nice to amortize this cost by doing it once and posting that data here, but I am postponing this for now, as it isn't an especially interesting problem.  
 
 #### Validating player data
 
