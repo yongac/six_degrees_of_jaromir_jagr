@@ -1,23 +1,24 @@
 # Six Degrees of Jaromir Jagr
 
-This repository contains a CLI program that finds the shortest sequence of teammates from Jaromir Jagr to a user-selected NHL player. 
+This repository contains a CLI program that finds the shortest sequence of teammates from NHL legend [Jaromir Jagr](https://en.wikipedia.org/wiki/Jarom%C3%ADr_J%C3%A1gr) to a user-selected NHL player. 
 
 **Purpose:** This project is meant to be a learning exercise, with the aim of practicing some project-specific skills (scraping data from the internet, using SQL databases) as well as more general software development skills (organizing a public-facing project and version controlling it with Git). 
 
-**Note: this project is <font color='red'>under construction</font>!** 
+**Note:** This project is under construction.
 
-(2025/03/05) In this (third) iteration, the data used is limited -- to respect the request rate limits imposed by Hockey-Reference, we collect data for about 20 rosters per minute, meaning extensive NHL roster data would take a few hours to collect -- but you can change the parameters of the scraping process if you want more extensive data. 
-
-This iteration shows that the main logic of the program works, from scraping data to building a database file and then to processing that data and computing shortest paths.
+This iteration shows that the main logic of the program works, from scraping data to building a database file and then to processing that data and computing shortest paths. 
 
 Other issues and future improvements are discussed at the bottom of this file, just before the Acknowledgments section. 
 
 ## Usage:
 
-1. Ensure you have Python 3 installed, and verify that you have the required packages (see `environment.yml` or `requirements.txt`) installed in your environment.
-2. Clone this repository.
-3. Run `python3 main.py`, and follow the prompts for further input.
-    * If you have not run the program before, it will take approximately 1-2 minutes to scrape the data for 20 rosters (e.g. one NHL team across 20 years) from the internet. This slow speed is due to intentional rate limiting (see `scraper.py`).
+1. Fork and clone this repository.
+2. Set up your Python 3 environment to meet the specifications in either `environment.yml` or `requirements.txt` 
+3. (Scrape the data) If you have not run the program before, you need to scrape NHL roster data and build the database.    
+    * This is done by (i) configuring parameters in `team_info/team_names.csv` and `team_info/team_seasons.csv` (or your choice of other CSV files), which control which teams and which year ranges are scraped, (ii) ensuring the python variables `team_names_csv` and `team_seasons_csv` within `main.py` are set to your choice files in (i), and finally (iii) running `python3 main.py` (or equivalent) at the command line.
+    * Depending on the number of teams/seasons you specify in part (i) above, the scraping process will take minutes or hours, since Hockey-Reference rate limits bot traffic to 20 requests per minute. So, expect a single roster (team in a given year) to take approximately 3 seconds. 
+4. Run `python3 main.py`, and follow the prompts for further input.
+
 
 ## Organization
 
@@ -38,10 +39,10 @@ In this iteration, the project is organized as follows:
 |   |-- team_seasons.csv  # tells which season-range to scrape data for
 |   |-- tiny_names.csv    # smaller version of team_names.csv, for testing 
 |   |-- tiny_seasons.csv  
-|-- auto.db             # a sqlite3 database constructed by database.py using the CSVs above
+|-- auto.db               # a sqlite3 database constructed by database.py using the CSVs above
 ```
 
-*Note:* the database file `auto.db` is not included in this online repo, but is constructed when running `main.py` for the first time. To add more/less data to this database, change the parameters/meta data in `team_names.csv` and/or `team_seasons.csv`. To avoid repeatedly scraping, it may be desirable to run this one time for the entire history of NHL roster data and save those in a CSV file. 
+*Note:* At this time, the database file `auto.db` is not included in this online repo, but is constructed when running `main.py` for the first time. To add more/less data to this database, change the parameters/meta data in `team_names.csv` and/or `team_seasons.csv`. To avoid repeatedly scraping, it may be desirable to run this one time for the entire history of NHL roster data and save those in a CSV file. 
 
 ## Design
 
@@ -52,7 +53,7 @@ In this iteration, the project is organized as follows:
     * (Currently) In Stage 2, we scrape the table data and insert it directly into the database file.
     * (Forthcoming) In Stage 3, we will revisit this design.
 
-2. After building a table of teammates, we check if tables for BFS logic have been constructed. They are constructed only once (or periodically) to amortize the cost of BFS across many calls to the function.
+2. After building a table of teammates, we check if tables for breadth-first search (BFS) logic have been constructed. They are constructed only once (or periodically) to amortize the cost of BFS across many calls to the function.
 
 3. If the BFS-relevant tables haven't been built, we construct them:
     - We build a teammates graph in memory, represented as an adjacency list (dict of lists of teammates), with nodes indexed by player ids and edges inserted acc. to a teammates table.
@@ -70,7 +71,7 @@ In this iteration, the project is organized as follows:
 
 #### Populating the database
 
-In this iteration of the project, the database is populated by scraping Hockey-Reference for rosters of given teams and years (as specified in the CSV files within `team_info/`.
+In this iteration of the project, the database is populated by scraping Hockey-Reference for rosters of given teams and years (as specified in the CSV files within `team_info/`).
    * Although this process can be automatically done for all roster data dating to the beginning of the NHL, it currently would take multiple hours, owing to the rate limits placed on us by Hockey-Reference.
    * It would be nice to amortize this cost by doing it once and posting that data here, but I am postponing this for now, as it isn't an especially interesting problem.  
 
