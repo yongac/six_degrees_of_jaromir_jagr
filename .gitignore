@@ -3,4 +3,4 @@ development_files/
 *.pyc
 *.db
 
-request_test.py
+team_info/corrections_seasons.csv
