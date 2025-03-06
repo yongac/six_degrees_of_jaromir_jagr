@@ -16,11 +16,14 @@ def main():
     ### Step 0: Set-up
 
     # Declare which database file to construct
-    db_file = "auto.db"
+    db_file = "1980_to_2025.db"  # got an error 2025/03/06 when scraping for 45 years of data.
+    #db_file = "auto.db"
 
     # Specify CSV file for meta data used to make database (teams, years)
-    team_names_csv = "team_info/tiny_names.csv"  
-    team_seasons_csv = "team_info/tiny_seasons.csv" 
+    team_names_csv = "team_info/small_names.csv"  
+    team_seasons_csv = "team_info/small_seasons.csv" 
+    # team_names_csv = "team_info/tiny_names.csv"
+    # team_seasons_csv = "team_info/tiny_seasons.csv"
 
     # Ensure the tables have been initialized: 
     database.set_up_db(db_file)  
